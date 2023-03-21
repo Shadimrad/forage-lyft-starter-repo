@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-import datetime
+from datetime import datetime
 
 class Servicable(ABC):
     @abstractmethod
@@ -7,8 +7,6 @@ class Servicable(ABC):
         pass
 
 class Engine(ABC):
-    def __init__(self):
-        pass
     @abstractmethod
     def needs_service(self):
         pass
@@ -19,20 +17,19 @@ class SternmanEngine(Engine):
         self.last_service_date = last_service_date
         self.warning_light_is_on = warning_light_is_on
 
-    def engine_should_be_serviced(self):
+    def needs_service(self):
         if self.warning_light_is_on:
             return True
         else:
             return False
 
 class WilloughbyEngine(Engine):
-    
     def __init__(self, last_service_date, current_mileage, last_service_mileage):
-        self.last_service_mileage = last_service_mileage
         self.current_mileage = current_mileage
         self.last_service_mileage = last_service_mileage
+        self.last_service_date = last_service_date
 
-    def engine_should_be_serviced(self):
+    def needs_service(self):
         return self.current_mileage - self.last_service_mileage > 60000
     
 
@@ -42,37 +39,35 @@ class CapuletEngine(Engine):
         self.current_mileage = current_mileage
         self.last_service_mileage = last_service_mileage
 
-    def engine_should_be_serviced(self):
+    def needs_service(self):
         return self.current_mileage - self.last_service_mileage > 30000
 
 
 class Battery(ABC):
-    def __init__(self):
-        pass
     @abstractmethod
     def needs_service(self):
         pass
 
 class NubbinBattery(Battery):
-    def __init__(self, last_service_date, current_date):
+    def __init__(self, current_date, last_service_date):
         self.last_service_date = last_service_date
         self.current_date = current_date
 
     def needs_service(self):
         service_threshold_date = self.last_service_date.replace(year=self.last_service_date.year + 4)
-        if service_threshold_date < datetime.today().date() or self.engine_should_be_serviced():
+        if service_threshold_date < datetime.today().date():
             return True
         else:
             return False
 
 class SpindlerBattery(Battery):
-    def __init__(self, last_service_date, current_date):
+    def __init__(self, current_date, last_service_date):
         self.last_service_date = last_service_date
         self.current_date = current_date
 
     def needs_service(self):
         service_threshold_date = self.last_service_date.replace(year=self.last_service_date.year + 2)
-        if service_threshold_date < datetime.today().date() or self.engine_should_be_serviced():
+        if service_threshold_date < datetime.today().date():
             return True
         else:
             return False
@@ -80,26 +75,45 @@ class SpindlerBattery(Battery):
 
 class Car(Servicable):
     def __init__(self, engine, battery):
-        self.battery = Battery
-        self.engine = Engine
+        self.battery = battery
+        self.engine = engine
 
     def needs_service(self):
-        pass
+        return self.engine.needs_service() or self.battery.needs_service()
 
-class CarFactory():
-    def __init__(self):
-        pass
-    def create_calliope(self, current_date, last_service_date, current_mileage, last_service_mileage):
-        return Car(last_service_date, CapuletEngine, SpindlerBattery)
+class CarFactory:
+ 
+    @staticmethod
+    def create_calliope(current_date, last_service_date, current_mileage, last_service_mileage):
+        engine = CapuletEngine(last_service_date, current_mileage, last_service_mileage)
+        battery = SpindlerBattery(current_date, last_service_date)
+        car = Car(engine, battery)
+        return car
     
-    def create_glissade(self, current_date, last_service_date, current_mileage, last_service_mileage):
-        return Car(last_service_date, WilloughbyEngine, SpindlerBattery)
+    @staticmethod
+    def create_glissade(current_date, last_service_date, current_mileage, last_service_mileage):
+        engine = WilloughbyEngine(last_service_date, current_mileage, last_service_mileage)
+        battery = SpindlerBattery(current_date, last_service_date)
+        car = Car(engine, battery)
+        return car
     
-    def create_palindrome(self, current_date, last_service_date, warning_light_on):
-        return Car(last_service_date, SternmanEngine, SpindlerBattery)
+    @staticmethod
+    def create_palindrome(current_date, last_service_date, warning_light_on):
+        engine = SternmanEngine(current_date, warning_light_on)
+        battery = SpindlerBattery(current_date, last_service_date)
+        car = Car(engine, battery)
+        return car
     
-    def create_rorschach(self, current_date, last_service_date, current_mileage, last_service_mileage):
-        return Car(last_service_date, WilloughbyEngine, NubbinBattery)
+    @staticmethod
+    def create_rorschach(current_date, last_service_date, current_mileage, last_service_mileage):
+        engine = WilloughbyEngine(last_service_date, current_mileage, last_service_mileage)
+        battery = NubbinBattery(current_date, last_service_date)
+        car = Car(engine, battery)
+        return car
     
-    def create_thovex(self, current_date, last_service_date, current_mileage, last_service_mileage):
-        return Car(last_service_date, CapuletEngine, NubbinBattery)
+    @staticmethod
+    def create_thovex(current_date, last_service_date, current_mileage, last_service_mileage):
+        engine = CapuletEngine(last_service_date, current_mileage, last_service_mileage)
+        battery = NubbinBattery(current_date, last_service_date)
+        car = Car(engine, battery)
+        return car
