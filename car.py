@@ -6,6 +6,27 @@ class Servicable(ABC):
     def needs_service(self):
         pass
 
+class tire(ABC):
+    @abstractmethod
+    def needs_service(self):
+        pass
+class OctoprimeTires(tire):
+    def __init__(self, tire_wear):
+        self.tire_wear = tire_wear
+    
+    def needs_service(self):
+        """Octoprime tires should be serviced only when the sum of all
+        values in the tire wear array is greater than or equal to 3."""
+        return sum(self.tire_wear) >= 3
+        
+class CarriganTires(tire):
+    def __init__(self, tire_wear):
+        self.tire_wear = tire_wear
+    def needs_service(self):
+        """Carrigan tires should be serviced only when one or more of
+        the values in the tire wear array is greater than or equal to 0.9."""
+        return any([wear >= 0.9 for wear in self.tire_wear])
+
 class Engine(ABC):
     @abstractmethod
     def needs_service(self):
@@ -66,7 +87,7 @@ class SpindlerBattery(Battery):
         self.current_date = current_date
 
     def needs_service(self):
-        service_threshold_date = self.last_service_date.replace(year=self.last_service_date.year + 2)
+        service_threshold_date = self.last_service_date.replace(year=self.last_service_date.year + 3)
         if service_threshold_date < datetime.today().date():
             return True
         else:
@@ -74,46 +95,52 @@ class SpindlerBattery(Battery):
 
 
 class Car(Servicable):
-    def __init__(self, engine, battery):
+    def __init__(self, engine, battery ,tire_wear):
         self.battery = battery
         self.engine = engine
+        self.tire_wear = tire_wear
 
     def needs_service(self):
-        return self.engine.needs_service() or self.battery.needs_service()
+        return self.engine.needs_service() or self.battery.needs_service() or self.tire_wear.needs_service()
 
 class CarFactory:
  
     @staticmethod
-    def create_calliope(current_date, last_service_date, current_mileage, last_service_mileage):
+    def create_calliope(current_date, last_service_date, current_mileage, last_service_mileage , tire_wear_arr):
         engine = CapuletEngine(last_service_date, current_mileage, last_service_mileage)
         battery = SpindlerBattery(current_date, last_service_date)
-        car = Car(engine, battery)
+        tire_wear = OctoprimeTires(tire_wear_arr)
+        car = Car(engine, battery, tire_wear)
         return car
     
     @staticmethod
-    def create_glissade(current_date, last_service_date, current_mileage, last_service_mileage):
+    def create_glissade(current_date, last_service_date, current_mileage, last_service_mileage, tire_wear_arr):
         engine = WilloughbyEngine(last_service_date, current_mileage, last_service_mileage)
         battery = SpindlerBattery(current_date, last_service_date)
-        car = Car(engine, battery)
+        tire_wear = OctoprimeTires(tire_wear_arr)
+        car = Car(engine, battery, tire_wear)
         return car
     
     @staticmethod
-    def create_palindrome(current_date, last_service_date, warning_light_on):
+    def create_palindrome(current_date, last_service_date, warning_light_on, tire_wear_arr):
         engine = SternmanEngine(current_date, warning_light_on)
         battery = SpindlerBattery(current_date, last_service_date)
-        car = Car(engine, battery)
+        tire_wear = OctoprimeTires(tire_wear_arr)
+        car = Car(engine, battery, tire_wear)
         return car
     
     @staticmethod
-    def create_rorschach(current_date, last_service_date, current_mileage, last_service_mileage):
+    def create_rorschach(current_date, last_service_date, current_mileage, last_service_mileage, tire_wear_arr):
         engine = WilloughbyEngine(last_service_date, current_mileage, last_service_mileage)
         battery = NubbinBattery(current_date, last_service_date)
-        car = Car(engine, battery)
+        tire_wear = OctoprimeTires(tire_wear_arr)
+        car = Car(engine, battery, tire_wear)
         return car
     
     @staticmethod
-    def create_thovex(current_date, last_service_date, current_mileage, last_service_mileage):
+    def create_thovex(current_date, last_service_date, current_mileage, last_service_mileage, tire_wear_arr):
         engine = CapuletEngine(last_service_date, current_mileage, last_service_mileage)
         battery = NubbinBattery(current_date, last_service_date)
-        car = Car(engine, battery)
+        tire_wear = CarriganTires(tire_wear_arr)
+        car = Car(engine, battery, tire_wear)
         return car
